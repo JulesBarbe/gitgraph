@@ -1,9 +1,8 @@
 import requests
 import os
+import argparse
+from datetime import datetime
 from collections import defaultdict
-
-# token with private repo scope for the one you want the dummy commits to be generated in
-TOKEN = os.getenv('GITHUB_SCRIPT_TOKEN')
 
 # weekday to num mapping
 NUM_TO_WEEKDAY = {
@@ -28,10 +27,31 @@ CONTRIB_COLORS = {
 # symbol for out of calendar days / exterior of the graph
 OUT_SYMBOL = "X"
 
+def main():
+  parser = argparse.ArgumentParser(description="Fetch your GitHub contribution graph in the terminal")
+  parser.add_argument('username', help='Github username')
+  parser.add_argument('--year', '-y', type=validate_year, default=datetime.now().year, help='Year to fetch')
+  parser.add_argument('--token', '-t', type=str, help='Github token with private and public repo read access (can also be stured in GITHUB_SCRIPT_TOKEN env var)')
+
+  args = parser.parse_args()
+
+  token = args.token or os.getenv('GITHUB_SCRIPT_TOKEN')
+  if not token:
+    print("Error: GitHub token required (--token or GITHUB_SCRIPT_TOKEN env variable)")
+    return
+
+  contrib_data = fetch_contributions(args.username, args.year, token)
+  draw_contrib_graph(contrib_data)
+
+  
+def validate_year(value):
+  year = int(value)
+  if year < 2008 or year > datetime.now().year:
+    raise argparse.ArgumentError("Year passed is invalid")
+  return year
+
 # github graphql api request for contributions of given year
 def fetch_contributions(name, year, token):
-  if not token: 
-    raise ValueError("Github token is required")
 
   # github graphql api query
   query = """
@@ -96,5 +116,4 @@ def draw_contrib_graph(calendar_data):
 
 
 if __name__ == "__main__":
-    data = fetch_contributions('JulesBarbe', 2025, TOKEN)
-    draw_contrib_graph(data)
+    main()
