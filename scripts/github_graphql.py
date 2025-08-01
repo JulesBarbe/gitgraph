@@ -3,6 +3,7 @@ import os
 import argparse
 from datetime import datetime
 from collections import defaultdict
+from dotenv import load_dotenv
 
 # weekday to num mapping
 NUM_TO_WEEKDAY = {
@@ -30,10 +31,12 @@ OUT_SYMBOL = "X"
 def main():
   parser = argparse.ArgumentParser(description="Fetch your GitHub contribution graph in the terminal")
   parser.add_argument('username', help='Github username')
-  parser.add_argument('--year', '-y', type=validate_year, default=datetime.now().year, help='Year to fetch')
+  parser.add_argument('--year', '-y', type=validate_year, default=datetime.now().year, help='Year to fetch (defaults to current year)')
   parser.add_argument('--token', '-t', type=str, help='Github token with private and public repo read access (can also be stured in GITHUB_SCRIPT_TOKEN env var)')
 
   args = parser.parse_args()
+
+  load_dotenv()
 
   token = args.token or os.getenv('GITHUB_SCRIPT_TOKEN')
   if not token:
@@ -57,6 +60,7 @@ def fetch_contributions(name, year, token):
   query = """
   query($userName: String!, $startDate: DateTime!, $endDate: DateTime!) {
     user(login:$userName) {
+      createdAt,
       contributionsCollection(from: $startDate, to: $endDate) {
         contributionCalendar {
           weeks {
