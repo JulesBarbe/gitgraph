@@ -58,23 +58,23 @@ def fetch_contributions(name, year, token):
 
   # github graphql api query
   query = """
-  query($userName: String!, $startDate: DateTime!, $endDate: DateTime!) {
-    user(login:$userName) {
-      createdAt,
-      contributionsCollection(from: $startDate, to: $endDate) {
-        contributionCalendar {
-          weeks {
-            contributionDays {
-              date
-              weekday
-              contributionCount
-              contributionLevel
+    query($userName: String!, $startDate: DateTime!, $endDate: DateTime!) {
+      user(login:$userName) {
+        createdAt,
+        contributionsCollection(from: $startDate, to: $endDate) {
+          contributionCalendar {
+            weeks {
+              contributionDays {
+                date
+                weekday
+                contributionCount
+                contributionLevel
+              }
             }
           }
         }
       }
     }
-  }
   """
 
   variables = {
@@ -90,6 +90,7 @@ def fetch_contributions(name, year, token):
   )
   response.raise_for_status()
 
+  # json response here is about 34kb
   try:
     data = response.json()['data']['user']['contributionsCollection']['contributionCalendar']['weeks']
     return data
