@@ -29,13 +29,16 @@ def fetch_acct_creation_date(token, username):
     except KeyError as e:
         print(f"Error w/ query formatting: {e}")
 
-    account_creation_year = int(data['createdAt'][0:4])
-    return account_creation_year
+    return data['createdAt']
 
 
 # fetch contribution data for given year
 # returns data on a weekday basis 
 def fetch_contribution_data(token, username, year):
+    if year < 2008 or year > datetime.now().year:
+        print(f"Invalid year request: {year}")
+        return
+
     query = """
         query($userName: String!, $startDate: DateTime!, $endDate: DateTime!) {
             user(login:$userName) {
@@ -81,7 +84,12 @@ def fetch_contribution_data(token, username, year):
     for week in data:
         for day in week['contributionDays']:
             weekday_num = day['weekday']
-            weekday_data[weekday_num].append({'date': day['date'], 'count': day['contributionCount'], 'level': day['contributionLevel']})
+            weekday_data[weekday_num].append(
+                {'date': day['date'], 
+                'count': day['contributionCount'], 
+                'level': day['contributionLevel'], 
+                'og': False if day['contributionLevel'] in ('OUT', 'NONE') else True    # days that can't be regenerated to NONE
+            })
             
     # padding for first/last few days of year
     first_week, last_week = data[0], data[-1]
@@ -120,14 +128,13 @@ def fetch_demo_data(year):
         else:
             # weekend -> higher contributions
             if weekday in (6, 0):
-                contribs = random.choices(range(0, 10), weights=[30, 20, 15, 10, 8, 6, 5, 3, 2, 1])[0]
+                contribs = random.choices(range(0, 10), weights=[80, 10, 5, 3, 2, 1, 1, 1, 1, 1])[0]
             else:
-                contribs = random.choices(range(0, 10), weights=[55, 24, 10, 5, 2, 1, 1, 1, 0.5, 0.5])[0]
+                contribs = random.choices(range(0, 10), weights=[90, 5, 3, 2, 1, 1, 1, 1, 1, 1])[0]
         
         weekday_data[weekday].append({'date': curr_date.strftime('%Y-%m-%d'), 'count': contribs}) # add level later
         all_contribs.append(contribs)
         curr_date += timedelta(days=1)
-    print(len(all_contribs))
 
     # calculate quartiles
     # bastardization of numpy linear interpolation?
@@ -193,3 +200,13 @@ def visualize_graph(weekday_data):
     for weekday, data in sorted(weekday_data.items()):
         print(NUM_TO_WEEKDAY[weekday], CONTRIB_COLORS['OUT'], " ".join([CONTRIB_COLORS[day['level']] for day in data]), CONTRIB_COLORS['OUT'])
     print("    " + line)
+
+if __name__ == "__main__":
+    username = 'JulesBarbe'
+    from dotenv import load_dotenv
+    import os
+    load_dotenv()
+    token = os.getenv('GITHUB_SCRIPT_TOKEN')
+    data = fetch_contribution_data(token, username, 2026)
+    for wday in data.values():
+        print(len(wday))

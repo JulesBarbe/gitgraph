@@ -15,57 +15,63 @@ we therefore save them in a user data storage on the backend (maybe redis later)
 cannot be put in session cookies (each year json data is about 30kb, cookies are 4kb)
 
 # tech stack
-- frontend: html + htmx + tailwind/css + some vanilla JS for graph logic (canvas?)
+- frontend: tailwind/css + vanilla js/css for graph + alpine for basic logic
 - backend: flask / fastAPI + templates 
 - sessions: encrypted cookies
 
 # data flow
 - user visits site for first time
-- site contains dummy contrib data and uninteractble options until they log in
+- site contains demo contrib data. graph is interactive n stuff, but can't be generated.
 - oauth login w github -> add username, etc. to flask session, github token to token_store
-- user redirected to / while backend fetches all github contrib data available
-- graph for current year is rendered by htmx
-- data for all other years is kept in browser (small) from github creation date to today
-- user can iterate through years
+- user redirected to / while backend fetches current year of contrib data and account creation data
+- graph for current year now rendered
+- user can iterate through years from acct creation to current. unseen contrib data gets fetched and cached locally.
 - user can click through graph to change colors == contribution quartiles
-- user can fill the graph automatically w some sliders and options (e.g. days of the week, frequency, etc.)
-- user clicks 'generate' to activate the generation script
-- new contribution data sent to backend
-- (?) look for repo / create private repo for the service
-- generate and add necessary commits to repo and push
+- user can fill the graph automatically w some sliders and options (e.g. days of the week, frequency, etc.)?
+- user clicks 'generate' when happy. current year is unomdifiable while generation ongoing.
+- new contribution data sent to backend -> generation script dispatched (dummy commits in private repo -> pushed)
+- user gets notified when generation for year x successful
 
 
 # TODOS:
 - [x] explore github api 
 - [x] graph data modeling
-- [ ] static graph renderer (html/css)
-- [ ] dynamic graph renderer (canvas)
-- [ ] graph logic (vanilla js)
+- [x] simple flask backend skeleton
+- [x] main api endpoints
+- [x] static graph renderer (html/css)
+- [x] graph logic (vanilla js)
+- [x] year navigation between different graphs
+- [x] optimizations (dynamic level counting and validation, fresh graph or diff based for clearing)
+- [x] better loading animation -> bouncing cells?
+- [ ] add sliders and options
+- [ ] complete validation (future and preaccount days, possible quartile combinations, etc)
+- [ ] generation api
 - [ ] actually add stuff locally (tailwind ...)
-- [ ] year navigation between different graphs
-- [ ] full spa frontend
-- [ ] simple flask backend skeleton
-- [ ] api endpoints
-- [ ] frontend - backend integration
 - [ ] oauth flow
 - [ ] live github data through oauth
 - [ ] graph gen
+- [ ] redis instead of python dicts lol
 - [ ] add gunicorn wsgi server and async
 - [ ] tests
 - [ ] error handling, ux
 - [ ] vps deploy
 - [ ] payments?
+- [ ] way down the line ... rewrite in rust w/ tokio, axios, well typed stuff, protobuffs?
 
 
 
 # questions:
-- github tos
 - rate limit github api use (batch change per year generation, only 10x a day by account?)
 - full Oauth flow
 - auth token in memory / db / encrypted cookies?
+- demo data fully local in frontend? like separate json for 2-3 years?
+- private repo name
 
 # prerequisities
 - have python 3.x installed
 - git installed and available in PATH
 - github personal token (PAT) with repo scope. keep it secure by making it an environment variable. you can do with `export GITHUB_TOKEN=your_token_here` on Linux/macOS or with `set GITHUB_TOKEN=your_token_here` in Windows cmd or `$env:GITHUB_TOKEN = "your_token_here"` in Windows powershell.
+
+# disclaimer
+This tool is intended solely for personal use and experimentation. It allows users to visualize and simulate GitHub contribution graphs by generating dummy commits in private repositories. These simulated contributions are not actual code contributions and do not reflect real-world activity. Using this tool to misrepresent your activity to others, including potential employers, is strictly prohibited and may violate GitHub’s Terms of Service. By using this tool, you agree to use it responsibly and acknowledge that any misuse is at your own risk.
 

@@ -4,8 +4,11 @@ from data import fetch_demo_data, fetch_contribution_data, fetch_acct_creation_d
 from collections import defaultdict
 import secrets
 
+
 # remove later
 import os
+from time import sleep
+
 
 app = Flask(__name__)
 
@@ -34,19 +37,17 @@ def index():
     user_state = {
         'logged_in': session.get('logged_in', False),
         'username': session.get('github_username', None),
-        'start_year': session.get('acct_creation_year', 2008)
+        'start_date': session.get('acct_creation_date', '2009-01-01T00:00:00Z')
     }
 
     curr_year = datetime.now().year
     
     if user_state['logged_in']:
         graph_data = data_store[user_state['username']][curr_year]
-        print('graph data')
     else:
         graph_data = fetch_demo_data(curr_year)
-        print('demo data')
 
-    return render_template('index.html',
+    return render_template('index.html.j2',
                         user_state=user_state,
                         graph_data=graph_data,
                         end_year=curr_year)
@@ -57,7 +58,7 @@ def get_graph_data(year):
     user_state = {
         'logged_in': session.get('logged_in', False),
         'username': session.get('github_username', None),
-        'start_year': session.get('acct_creation_year', 2008)
+        'start_year': session.get('acct_creation_date', 2008)
     }
 
     if user_state['logged_in']:
@@ -81,6 +82,9 @@ def get_graph_data(year):
     else:
         graph_data = fetch_demo_data(year)
     
+    # TODO: remove
+    sleep(2)
+
     return {'year': year, 'graph_data': graph_data}
 
 
@@ -96,14 +100,13 @@ def login():
 
     # fetch github account creation date
     print('fetching acct creation date')
-    acct_creation_year = fetch_acct_creation_date(github_token, github_username)
-    session['acct_creation_year'] = acct_creation_year
+    acct_creation_date = fetch_acct_creation_date(github_token, github_username)
+    session['acct_creation_date'] = acct_creation_date
     
     # fetch contribution data for current year before refresh
     print('fetching graph data')
     curr_year = datetime.now().year
     graph_data = fetch_contribution_data(github_token, github_username, curr_year)
-    print(graph_data)
     data_store[github_username][curr_year] = graph_data
 
     return redirect('/')
@@ -120,4 +123,4 @@ def logout():
     return redirect('/')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(port=8000, debug=True)
