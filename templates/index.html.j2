@@ -3,218 +3,170 @@
 {% block title %}Con-Tribute{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-github-bg text-github-text" x-data="data">
+<div class="min-h-screen bg-github-bg text-github-text" x-data="app">
 
-  <!-- navigation -->
+  <!-- Navigation -->
   <nav class="border-b border-github-border bg-github-surface">
     <div class="container mx-auto px-4 py-4 flex justify-between items-center">
       <h1 class="text-2xl font-bold text-github-text">con-tribute</h1>
       
       <div class="flex items-center space-x-4">
-        <!-- login/logout section -->
-        <div class="flex items-center space-x-4" x-show="userState.logged_in">
-          <span class="text-github-text-secondary" x-text="'welcome, ' + userState.username"></span>
+        <!-- Login/logout section -->
+        <div class="flex items-center space-x-4" x-show="$store.user.isLoggedIn">
+          <span class="text-github-text-secondary" x-text="`welcome, ${$store.user.username}`"></span>
           <a href="/logout" class="text-github-blue hover:underline">logout</a>
         </div>
 
-        <a href="/login" class="bg-github-green text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors" x-show="!userState.logged_in">
+        <a href="/login" 
+           class="bg-github-green text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors" 
+           x-show="!$store.user.isLoggedIn">
           login with github
         </a>
       </div>
     </div>
   </nav>
 
-  <!-- main content -->
+  <!-- Main content -->
   <div class="container mx-auto px-4 py-8 relative">
 
-    <!-- floating info button -->
-    <button 
-      @click="showInfoPopup = true"
-      class="absolute top-15 right-0 w-10 h-10 rounded-full bg-github-surface border border-github-border hover:bg-github-text-secondary text-github-text-secondary hover:text-github-text transition-colors flex items-center justify-center shadow-lg"
-      title="About this site"
-    >
+    <!-- Floating info button -->
+    <button @click="$store.ui.showInfoPopup = true"
+            class="absolute top-15 right-0 w-10 h-10 rounded-full bg-github-surface border border-github-border hover:bg-github-text-secondary text-github-text-secondary hover:text-github-text transition-colors flex items-center justify-center shadow-lg"
+            title="About this site">
       <span class="text-lg font-semibold">?</span>
     </button>
 
-    <!-- hero section -->
+    <!-- Hero section -->
     <div class="text-center mb-10">
-      <h2 class="text-4xl font-light">
-        fuck around with your github contribution graph
-      </h2>
+      <h2 class="text-4xl font-light">fuck around with your github contribution graph</h2>
       <p class="text-github-text-secondary text-lg pt-2 pb-10">
         make yourself look 'cracked' for the two people looking at your profile / do silly drawings i dont care
       </p>
     </div>
 
-    <!-- population controls -->
-    <div class="mx-auto"">
+    <!-- Population controls -->
+    <div x-data="populationControls" class="mx-auto">
       <div class="flex items-stretch justify-center gap-3 overflow-x-auto pb-2 mb-8">
-        <!-- frequency -->
+        
+        <!-- Frequency slider -->
         <div class="bg-github-surface border border-github-border rounded-lg p-4 min-w-[220px]">
           <h3 class="text-sm mb-3 text-github-text-secondary">frequency</h3>
-          <input 
-            type="range" 
-            min="0" 
-            max="100" 
-            x-model="populateOptions.frequency"
-            class="w-full h-2 bg-github-border rounded-lg appearance-none cursor-pointer mt-4"
-          >
+          <input type="range" min="0" max="100" 
+                 x-model="options.frequency"
+                 class="w-full h-2 bg-github-border rounded-lg appearance-none cursor-pointer mt-4">
           <div class="flex justify-between text-xs text-github-text-secondary mt-1">
             <span>sparse</span>
-            <span x-text="populateOptions.frequency + '%'"></span>
+            <span x-text="`${options.frequency}%`"></span>
             <span>dense</span>
           </div>
         </div>
 
-        <!-- weekday preference -->
+        <!-- Weekday preference slider -->
         <div class="bg-github-surface border border-github-border rounded-lg p-4 min-w-[220px]">
           <h3 class="text-sm mb-3 text-github-text-secondary">weekday preference</h3>
-            <input 
-              type="range" 
-              min="0" 
-              max="100" 
-              x-model="populateOptions.weekdayBias"
-              class="w-full h-2 bg-github-border rounded-lg appearance-none cursor-pointer mt-4"
-            >
-            <div class="flex justify-between text-xs text-github-text-secondary mt-1">
-              <span>weekdays</span>
-              <span x-text="populateOptions.weekdayBias + '%'"></span>
-              <span>weekends</span>
+          <input type="range" min="0" max="100" 
+                 x-model="options.weekdayBias"
+                 class="w-full h-2 bg-github-border rounded-lg appearance-none cursor-pointer mt-4">
+          <div class="flex justify-between text-xs text-github-text-secondary mt-1">
+            <span>weekdays</span>
+            <span x-text="`${options.weekdayBias}%`"></span>
+            <span>weekends</span>
           </div>
-            
         </div>
 
-        <!-- contribution intensity -->
+        <!-- Contribution intensity -->
         <div class="bg-github-surface border border-github-border rounded-lg p-4 min-w-[220px]">
           <h3 class="text-sm mb-3 text-github-text-secondary">contribution intensity</h3>
-          <div class="inline-flex rounded-md border border-github-border overflow-hidden mt-2" role="radiogroup" aria-label="intensity">
-            <button type="button"
-              @click="populateOptions.intensity='low'"
-              :aria-checked="populateOptions.intensity==='low'"
-              class="px-3 py-1.5 text-sm"
-              :class="populateOptions.intensity==='low' ? 'bg-github-blue text-white' : 'bg-github-surface text-github-text-secondary hover:bg-[#1b2330]'">
-              low
-            </button>
-            <button type="button"
-              @click="populateOptions.intensity='medium'"
-              :aria-checked="populateOptions.intensity==='medium'"
-              class="px-3 py-1.5 text-sm border-l border-github-border"
-              :class="populateOptions.intensity==='medium' ? 'bg-github-blue text-white' : 'bg-github-surface text-github-text-secondary hover:bg-[#1b2330]'">
-              medium
-            </button>
-            <button type="button"
-              @click="populateOptions.intensity='high'"
-              :aria-checked="populateOptions.intensity==='high'"
-              class="px-3 py-1.5 text-sm border-l border-github-border"
-              :class="populateOptions.intensity==='high' ? 'bg-github-blue text-white' : 'bg-github-surface text-github-text-secondary hover:bg-[#1b2330]'">
-              high
-            </button>
+          <div class="inline-flex rounded-md border border-github-border overflow-hidden mt-2" 
+               role="radiogroup" aria-label="intensity">
+            <template x-for="level in intensityLevels" :key="level">
+              <button type="button"
+                      @click="options.intensity = level"
+                      :aria-checked="options.intensity === level"
+                      class="px-3 py-1.5 text-sm border-l border-github-border first:border-l-0"
+                      :class="options.intensity === level ? 
+                        'bg-github-blue text-white' : 
+                        'bg-github-surface text-github-text-secondary hover:bg-[#1b2330]'"
+                      x-text="level">
+              </button>
+            </template>
           </div>
         </div>
 
-        <!-- pattern -->
+        <!-- Pattern selection -->
         <div class="bg-github-surface border border-github-border rounded-lg p-4 min-w-[220px]">
           <h3 class="text-sm mb-3 text-github-text-secondary">contribution pattern</h3>
           <div class="grid grid-cols-2 gap-2" role="radiogroup" aria-label="pattern">
-            <button type="button"
-              @click="populateOptions.pattern='random'"
-              :aria-checked="populateOptions.pattern==='random'"
-              class="px-3 py-1.5 text-sm rounded-full border border-github-border text-center"
-              :class="populateOptions.pattern==='random' ? 'bg-github-surface text-white' : 'bg-github-surface text-github-text-secondary hover:bg-[#1b2330]'">
-              random
-            </button>
-            <button type="button"
-              @click="populateOptions.pattern='streaks'"
-              :aria-checked="populateOptions.pattern==='streaks'"
-              class="px-3 py-1.5 text-sm rounded-full border border-github-border text-center"
-              :class="populateOptions.pattern==='streaks' ? 'bg-github-surface text-white' : 'bg-github-surface text-github-text-secondary hover:bg-[#1b2330]'">
-              streaks
-            </button>
-            <button type="button"
-              @click="populateOptions.pattern='consistent'"
-              :aria-checked="populateOptions.pattern==='consistent'"
-              class="px-3 py-1.5 text-sm rounded-full border border-github-border text-center"
-              :class="populateOptions.pattern==='consistent' ? 'bg-github-surface text-white' : 'bg-github-surface text-github-text-secondary hover:bg-[#1b2330]'">
-              consistent
-            </button>
-            <button type="button"
-              @click="populateOptions.pattern='bursts'"
-              :aria-checked="populateOptions.pattern==='bursts'"
-              class="px-3 py-1.5 text-sm rounded-full border border-github-border text-center"
-              :class="populateOptions.pattern==='bursts' ? 'bg-github-surface text-white' : 'bg-github-surface text-github-text-secondary hover:bg-[#1b2330]'">
-              bursts
-            </button>
+            <template x-for="pattern in patternTypes" :key="pattern">
+              <button type="button"
+                      @click="options.pattern = pattern"
+                      :aria-checked="options.pattern === pattern"
+                      class="px-3 py-1.5 text-sm rounded-full border border-github-border text-center"
+                      :class="options.pattern === pattern ? 
+                        'bg-github-surface text-white' : 
+                        'bg-github-surface text-github-text-secondary hover:bg-[#1b2330]'"
+                      x-text="pattern">
+              </button>
+            </template>
           </div>
         </div>
 
-        <!-- actions: apply + clear (split with divider) -->
+        <!-- Actions -->
         <div class="bg-github-surface border border-github-border rounded-lg p-4 min-w-[220px] flex flex-col items-stretch">
-          <!-- apply -->
-          <div class="flex flex-col gap-2">
-            <button 
-              @click="applyPopulateOptions()"
-              class="text-white border border-[#26a641] hover:bg-[#26a641] px-4 py-2 rounded-md transition-colors"
-            >
-              apply changes
-            </button>
-          </div>
-
-          <!-- divider -->
+          <button @click="apply()" 
+                  class="text-white border border-[#26a641] hover:bg-[#26a641] px-4 py-2 rounded-md transition-colors">
+            apply changes
+          </button>
+          
           <div class="my-4 border-t border-github-border"></div>
-
-          <!-- clear -->
-          <div class="flex flex-col gap-2">
-            <button 
-              @click="clearGraph()"
-              :disabled="loading"
-              :class="loading ? 'cursor-not-allowed opacity-60' : ''"
-              class="text-white border border-red-600/60 hover:bg-red-600 hover:border-red-600 px-4 py-2 rounded-md transition-colors"
-            >
-              clear graph
-            </button>
-          </div>
+          
+          <button @click="$store.graph.clearCurrentYear()" 
+                  :disabled="$store.graph.loading"
+                  :class="$store.graph.loading ? 'cursor-not-allowed opacity-60' : ''"
+                  class="text-white border border-red-600/60 hover:bg-red-600 hover:border-red-600 px-4 py-2 rounded-md transition-colors">
+            clear graph
+          </button>
         </div>
+      </div>
     </div>
 
-    <!-- graph container -->
-    <div class="w-fit mx-auto mb-8">
+    <!-- Graph container -->
+    <div x-data="graphContainer" class="w-fit mx-auto mb-8">
       <div class="bg-github-surface border border-github-border rounded-lg p-6">
 
-        <!-- year navigation and level display -->
+        <!-- Year navigation and level display -->
         <div class="flex items-center justify-between mb-6">
+          <!-- Year navigation -->
           <div class="flex items-center space-x-4">
-            <button
-              @click="previousYear()"
-              :disabled="currentYear <= startYear || loading"
-              :class="(currentYear <= startYear || loading) ? 'text-gray-500 cursor-not-allowed' : 'text-github-text-secondary hover:text-github-text'"
-            >
-            <i data-lucide="chevron-left"></i>
+            <button @click="$store.graph.previousYear()"
+                    :disabled="!canGoPrevious"
+                    :class="canGoPrevious ? 
+                      'text-github-text-secondary hover:text-github-text' : 
+                      'text-gray-500 cursor-not-allowed'">
+              <i data-lucide="chevron-left"></i>
             </button>  
-            <span class="text-xl font-semibold" x-text="currentYear"></span>
-            <button 
-              @click="nextYear()" 
-              :disabled="currentYear >= endYear || loading"
-              :class="(currentYear >= endYear || loading) ? 'text-gray-500 cursor-not-allowed' : 'text-github-text-secondary hover:text-github-text'"
-            >
+            <span class="text-xl font-semibold" x-text="$store.graph.currentYear"></span>
+            <button @click="$store.graph.nextYear()"
+                    :disabled="!canGoNext"
+                    :class="canGoNext ? 
+                      'text-github-text-secondary hover:text-github-text' : 
+                      'text-gray-500 cursor-not-allowed'">
               <i data-lucide="chevron-right"></i>
             </button>
           </div>
-          <!-- dynamic level count display -->
+
+          <!-- Level distribution display -->
           <div class="flex items-center justify-between gap-16">
-            <template x-for="level in ['FIRST_QUARTILE', 'SECOND_QUARTILE', 'THIRD_QUARTILE', 'FOURTH_QUARTILE']" :key="level">
+            <template x-for="level in contributionLevels" :key="level">
               <div class="flex items-center space-x-1">
-                <div 
-                  class="w-4 h-4 rounded-sm"
-                  :style="`background-color: ${getColor(level)}`"
-                ></div>
-                <span 
-                  class="text-xs text-github-text-secondary font-mono"
-                  x-text="Math.round(((graphLevelCounts[currentYear] || {})[level] || 0) / Math.max(totalContributions, 1) * 100) + '%'"
-                ></span>
+                <div class="w-4 h-4 rounded-sm" :style="`background-color: ${getColor(level)}`"></div>
+                <span class="text-xs text-github-text-secondary font-mono" 
+                      x-text="getLevelPercentage(level)"></span>
               </div>
             </template>
           </div>
-          <!-- right: hint + clear graph -->
+
+          <!-- Interaction hint -->
           <div class="flex items-center gap-3">
             <span class="text-sm text-github-text-secondary">
               left-click to bring contribution up, right-click to bring it down
@@ -222,79 +174,65 @@
           </div>
         </div>
         
-        <!-- graph cell grid -->
-        <div 
-          class="flex justify-center p-1 relative" 
-          @mouseup="stopDrag()"
-          @mousedown="startDrag($event, null)"
-          @contextmenu.prevent="true"
-        >
+        <!-- Graph grid -->
+        <div x-data="graphGrid" 
+             class="flex justify-center p-1 relative" 
+             @mouseup="interaction.stopDrag()"
+             @mousedown="interaction.startDrag($event, null)"
+             @contextmenu.prevent="true">
+          
           <div class="flex flex-col">
-
-            <!-- top month labels -->
+            <!-- Month labels -->
             <div class="flex items-end ml-4 mb-2">
-              <!-- top-left spacer equal to weekday label col width -->
               <div class="flex-none w-8"></div>
               <div class="flex gap-1.5 pb-1">
-                <template x-for="col in (loading ? 53 : weekCount)" :key="'m'+col">
-                  <div class="w-4 text-[10px] text-github-text-secondary whitespace-nowrap">
-                    <span x-show="!loading" x-text="getMonthLabelForWeek(col-1)"></span>
-                    <span x-show="loading" x-text="getLoadingMonthLabel(col-1)"></span>
+                <template x-for="col in (loading ? 53 : weekCount)" :key="`m${col}`">
+                  <div class="w-4 text-[12px] text-github-text-secondary whitespace-nowrap">
+                    <span x-show="!$store.graph.loading" x-text="getMonthLabel(col-1)"></span>
+                    <span x-show="$store.graph.loading" x-text="getLoadingMonthLabel(col-1)"></span>
                   </div>
                 </template>
               </div>
             </div>
 
-            <!-- body: left weekday labels + right graph -->
+            <!-- Graph body -->
             <div class="flex">
-              <!-- weekday labels column -->
+              <!-- Weekday labels -->
               <div class="flex-none w-8 mr-2">
                 <div class="flex flex-col gap-1 pb-3">
-                  <template x-for="weekday in [0,1,2,3,4,5,6]" :key="'lbl'+weekday">
+                  <template x-for="weekday in weekdays" :key="`lbl${weekday}`">
                     <div class="h-4 flex items-center">
-                      <span class="text-xs text-github-text-secondary"
-                            x-text="weekday===1?'Mon':(weekday===3?'Wed':(weekday===5?'Fri':''))"></span>
+                      <span class="text-xs text-github-text-secondary" 
+                            x-text="getWeekdayLabel(weekday)"></span>
                     </div>
                   </template>
                 </div>
               </div>
 
-              <!-- loading skeleton -->
-              <div x-show="loading" class="flex flex-col gap-1 pb-3">
-                <template x-for="weekday in [0, 1, 2, 3, 4, 5, 6]" :key="`loading-${weekday}`">
+              <!-- Loading skeleton -->
+              <div x-show="$store.graph.loading" class="flex flex-col gap-1 pb-3">
+                <template x-for="weekday in weekdays" :key="`loading-${weekday}`">
                   <div class="flex gap-1.5">
-                    <template x-for="(dummy, dayIndex) in Array.from({ length: 53 })" :key="`loading-${weekday}-${dayIndex}`">
-                      <div 
-                        class="w-4 h-4 rounded-sm bg-[#22272e]"
-                        :style="`
-                          animation: scale-pulse ${['1.5s', '2s', '1.8s', '2.2s'][Math.floor(Math.random() * 4)]} infinite ${['ease-in-out', 'ease-out', 'ease-in', 'linear'][Math.floor(Math.random() * 4)]};
-                          animation-delay: ${Math.random() * 2}s;
-                          --scale-min: ${0.3 + Math.random() * 0.4};
-                        `"
-                      ></div>
+                    <template x-for="week in 53" :key="`loading-${weekday}-${week}`">
+                      <div class="w-4 h-4 rounded-sm bg-[#22272e] loading-cell"></div>
                     </template>
                   </div>
                 </template>
               </div>
 
-              <!-- real graph -->
-              <div x-show="!loading" class="flex flex-col gap-1 pb-3">
-                <template x-for="weekday in [0, 1, 2, 3, 4, 5, 6]" :key="weekday">
+              <!-- Actual graph -->
+              <div x-show="!$store.graph.loading" class="flex flex-col gap-1 pb-3">
+                <template x-for="weekday in weekdays" :key="weekday">
                   <div class="flex gap-1.5">
-                    <template x-for="(day, dayIndex) in (currentData[weekday])" :key="`${weekday}-${dayIndex}`">
-                      <div
-                        class="contribution-day w-4 h-4 rounded-sm transition-all duration-200 ease-out"
-                        :class="{
-                          'opacity-30 cursor-default': day.level === 'OUT',
-                          'cursor-pointer hover:opacity-80': day.level !== 'OUT' && !isDayLocked(day),
-                          'cursor-not-allowed opacity-40': isDayLocked(day) && day.level !== 'OUT',
-                          'scale-110': day.activated,
-                        }"
-                        :style="`background-color: ${getColor(day.level)}`"
-                        @mousedown="startDrag($event, day)"
-                        @mouseenter="onDragOver(day)"
-                          :title="getTooltip(day)"
-                      ></div>
+                    <template x-for="(day, dayIndex) in ($store.graph.currentData[weekday] || [])" 
+                             :key="`${weekday}-${dayIndex}`">
+                      <div class="contribution-day w-4 h-4 rounded-sm transition-all duration-200 ease-out"
+                           :class="getCellClasses(day)"
+                           :style="`background-color: ${getColor(day.level)}`"
+                           @mousedown="interaction.startDrag($event, day)"
+                           @mouseenter="interaction.onDragOver(day)"
+                           :title="getTooltip(day)">
+                      </div>
                     </template>
                   </div>
                 </template>
@@ -305,62 +243,60 @@
       </div>
     </div>
 
-    <!-- generate section -->
-    <div class="w-fit mx-auto">
+    <!-- Generation section -->
+    <div x-data="generationSection" class="w-fit mx-auto">
       <div class="text-center">
-        <div x-show="validationWarning" class="bg-yellow-900/20 border border-yellow-600 rounded-lg p-4 mb-4">
-          <p class="text-yellow-200 text-sm" x-text="validationWarning"></p>
+        <div x-show="$store.ui.validationWarning" 
+             class="bg-yellow-900/20 border border-yellow-600 rounded-lg p-4 mb-4">
+          <p class="text-yellow-200 text-sm" x-text="$store.ui.validationWarning"></p>
         </div>
         
-        <button 
-          @click="generateContributions()"
-          :disabled="!userState.logged_in"
-          :class="userState.logged_in ? 'bg-github-green hover:bg-green-600' : 'bg-gray-600 cursor-not-allowed'"
-          class="text-white px-8 py-3 rounded-md font-semibold transition-colors"
-        >
-          <span x-show="!generating">generate contributions</span>
-          <span x-show="generating">generating...</span>
+        <button @click="generate()"
+                :disabled="!$store.user.isLoggedIn"
+                :class="$store.user.isLoggedIn ? 
+                  'bg-github-green hover:bg-green-600' : 
+                  'bg-gray-600 cursor-not-allowed'"
+                class="text-white px-8 py-3 rounded-md font-semibold transition-colors">
+          <span x-show="!$store.ui.generating">generate contributions</span>
+          <span x-show="$store.ui.generating">generating...</span>
         </button>
         
-        <p class="text-github-text-secondary text-sm mt-2" x-show="!userState.logged_in">
+        <p class="text-github-text-secondary text-sm mt-2" x-show="!$store.user.isLoggedIn">
           login with github to generate contributions
         </p>
       </div>
     </div>
   </div>
 
-  <!-- info popup modal -->
-  <div 
-    x-show="showInfoPopup" 
-    x-transition:enter="transition ease-out duration-100"
-    x-transition:enter-start="opacity-0"
-    x-transition:enter-end="opacity-100"
-    x-transition:leave="transition ease-in duration-100"
-    x-transition:leave-start="opacity-100"
-    x-transition:leave-end="opacity-0"
-    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-    @click.self="showInfoPopup = false"
-  >
-    <div 
-      class="bg-github-surface border border-github-border rounded-lg p-8 max-w-2xl mx-4 text-github-text"
-      x-transition:enter="transition ease-out duration-100"
-      x-transition:enter-start="opacity-0 scale-95"
-      x-transition:enter-end="opacity-100 scale-100"
-      x-transition:leave="transition ease-in duration-100"
-      x-transition:leave-start="opacity-100 scale-100"
-      x-transition:leave-end="opacity-0 scale-95"
-    >
+  <!-- Info popup modal -->
+  <div x-data="infoPopup"
+       x-show="$store.ui.showInfoPopup" 
+       x-transition:enter="transition ease-out duration-100"
+       x-transition:enter-start="opacity-0"
+       x-transition:enter-end="opacity-100"
+       x-transition:leave="transition ease-in duration-100"
+       x-transition:leave-start="opacity-100"
+       x-transition:leave-end="opacity-0"
+       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+       @click.self="close()">
+    
+    <div class="bg-github-surface border border-github-border rounded-lg p-8 max-w-2xl mx-4 text-github-text"
+         x-transition:enter="transition ease-out duration-100"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-100"
+         x-transition:leave-start="opacity-100 scale-100"
+         x-transition:leave-end="opacity-0 scale-95">
+      
       <div class="flex justify-between items-center">
         <h4 class="text-lg text-github-text font-medium">heads up</h4>
-        <button 
-          @click="showInfoPopup = false"
-          class="text-github-text-secondary hover:text-github-text transition-colors"
-        >
+        <button @click="close()" 
+                class="text-github-text-secondary hover:text-github-text transition-colors">
           <span class="text-2xl">&times;</span>
         </button>
       </div>
       
-      <div class="space-y-4 text-base text-github-text-secondary">
+      <div class="space-y-4 text-base text-github-text-secondary mt-4">
         <p class="text-sm">
           changes on this site WILL actively reflect on your github page. I DO NOT personally recommend using this to fool employers.
           this site was made on a whim and I don't intend to be put on legal blast because of YOU and your INABILITY to find a JOB.
@@ -372,9 +308,8 @@
           <ul class="list-disc list-inside text-sm">
             <li>left-click to bring contribution level up</li>
             <li>right-click to bring contribution level down</li>
-            <li>auto-populate the graph w/ the sliders and stuff </li>
+            <li>auto-populate the graph w/ the sliders and stuff</li>
             <li>generate the changes if the graph is valid (more on this below). should reflect on github in X minutes</li>
-
           </ul>
         </div>
         
@@ -398,195 +333,266 @@
             By using this tool, you agree to use it responsibly and acknowledge that any misuse is at your own risk. :)
           </p>
         </div>
+      </div>
     </div>
   </div>
-</div>  
+</div>
+
+<style>
+.loading-cell {
+  animation: scale-pulse 2s infinite ease-in-out;
+  animation-delay: calc(var(--delay, 0) * 0.1s);
+}
+</style>
 
 <script>
-  // lucide icons
-  lucide.createIcons();
+lucide.createIcons();
 
-  // alpine.js 
-  document.addEventListener('alpine:init', () => {
-    Alpine.data('data', () => ({
+document.addEventListener('alpine:init', () => {
+  
+  // stores
+  // user state store injected from flask visa Jinja2
+  Alpine.store('user', {
+    isLoggedIn: {{ user_state.logged_in | tojson }},
+    username: {{ user_state.username | tojson }},
+    startYear: {{ user_state['start_date'][:4] | int }},
+  });
+
+  // ui state store
+  Alpine.store('ui', {
+    showInfoPopup: false,
+    validationWarning: '', // message to stop generation if invalid graph
+    generating: false,
+  });
+
+  // graph data and operations store
+  Alpine.store('graph', {
+    LEVELS: ['NONE', 'FIRST_QUARTILE', 'SECOND_QUARTILE', 'THIRD_QUARTILE', 'FOURTH_QUARTILE'],
+    
+    // state
+    currentYear: {{ end_year }},
+    endYear: {{ end_year }},
+    loading: false,
+    
+    // data storage
+    originalData: {}, // original data from api
+    workingData: {}, // working data for the graph
+    levelCounts: {}, // counts of each level
+    
+    // computed properties
+    // current year data
+    get currentData() {
+      return this.workingData[this.currentYear] || {};
+    },
+    
+    // sum of all contributions in the current year
+    get totalContributions() {
+      return Object.values(this.levelCounts[this.currentYear] || {})
+        .reduce((sum, count) => sum + count, 0);
+    },
+    
+    // methods
+    async previousYear() {
+      if (this.currentYear <= Alpine.store('user').startYear || this.loading) return;
       
-      // properties
-      userState: {{ user_state | tojson }},
-      startYear: {{ user_state['start_date'][:4] | int }},
-      endYear: {{ end_year }},
-      currentYear: {{ end_year }},
+      this.loading = true;
+      this.currentYear--;
+      await this.ensureDataLoaded(this.currentYear);
+      this.loading = false;
+    },
 
-        // graph data: original -> actual github data, working -> w/ current modifications
-        // { year: {weekday: [...], ...}, ...}
-        graphDataOriginal: {}, 
-        graphDataWorking: {},
-        get currentData() {
-          return this.graphDataWorking[this.currentYear] || {};
-        },
+    async nextYear() {
+      if (this.currentYear >= this.endYear || this.loading) return;
+      
+      this.loading = true;
+      this.currentYear++;
+      await this.ensureDataLoaded(this.currentYear);
+      this.loading = false;
+    },
 
-      // level counts accross each year
-      graphLevelCounts: {},
-      get totalContributions() {
-        return Object.values(this.graphLevelCounts[this.currentYear] || {}).reduce((sum, count) => sum + count, 0);
-      },
+    // ensure data is loaded for a given year
+    // check cache otherwise fetch from api
+    async ensureDataLoaded(year) {
+      if (this.workingData[year]) return;
+      
+      try {
+        const response = await fetch(`/api/graph/${year}`);
+        const data = await response.json();
 
-      // graph population
-      populateOptions: {
-        frequency: 50,
-        weekdayBias: 50,
-        intensity: 'medium',
-        pattern: 'random'
-      },
-
-      // graph drawing
-      isDragging: false,
-      dragMode: null,     // increase / decrease
-
-      // popup info
-      showInfoPopup: false,
-
-      // graph 
-      COLORS: {
-        'OUT': '#161b22',        
-        'NONE':'#22272e',       
-        'FIRST_QUARTILE': '#0e4429',
-        'SECOND_QUARTILE': '#006d32', 
-        'THIRD_QUARTILE': '#26a641',
-        'FOURTH_QUARTILE': '#39d353'
-      },
-      LEVELS: ['NONE', 'FIRST_QUARTILE', 'SECOND_QUARTILE', 'THIRD_QUARTILE', 'FOURTH_QUARTILE'],
-      loading: false,
-
-      // graph validation
-      validationWarning: '',
-      generating: false,
-
-      // methods
-      getColor(level) {
-        return this.COLORS[level]
-      },
-
-      calculateLevelCount(graphData) {
-        var counts = {
-          'FIRST_QUARTILE': 0,
-          'SECOND_QUARTILE': 0,
-          'THIRD_QUARTILE': 0,
-          'FOURTH_QUARTILE': 0
-        };
-
-        Object.values(graphData).forEach(weekday => {
-          weekday.forEach(day => {
-            if (day.level !== 'OUT' && day.level !== 'NONE') {
-              counts[day.level]++;
-            }
-          });
-        });
-        return counts;
-      },
-
-      async previousYear() {
-        if (this.currentYear <= this.startYear || this.loading) return;
-        
-        this.loading = true;
-        this.currentYear--;
-        await this.ensureDataLoaded(this.currentYear);
-        this.loading = false;
-      },
-
-      async nextYear() {
-        if (this.currentYear >= this.endYear || this.loading) return;
-        
-        this.loading = true;
-        this.currentYear++;
-        await this.ensureDataLoaded(this.currentYear);
-        this.loading = false;
-      },
-
-      async ensureDataLoaded(year) {
-        if (this.graphDataWorking[year]) {
+        if (data.error) {
+          console.error('API error:', data.error);
           return;
         }
+
+        this.originalData[year] = data.graph_data;
+        this.workingData[year] = JSON.parse(JSON.stringify(data.graph_data));
+        this.levelCounts[year] = this.calculateLevelCount(data.graph_data);
+      } catch (error) {
+        console.error(`Failed to fetch year ${year} data:`, error);
+      }
+    },
+
+    // calculate the number of contributions for each level
+    calculateLevelCount(graphData) {
+      const counts = {
+        'FIRST_QUARTILE': 0,
+        'SECOND_QUARTILE': 0,
+        'THIRD_QUARTILE': 0,
+        'FOURTH_QUARTILE': 0
+      };
+
+      Object.values(graphData).forEach(weekday => {
+        weekday.forEach(day => {
+          if (day.level !== 'OUT' && day.level !== 'NONE') {
+            counts[day.level]++;
+          }
+        });
+      });
+
+      return counts;
+    },
+
+    increaseLevel(day) {
+      const currentIndex = this.LEVELS.indexOf(day.level);
+      if (currentIndex < this.LEVELS.length - 1) {
+        if (day.level !== 'NONE') {
+          this.levelCounts[this.currentYear][day.level]--;
+        }
         
-        try {
-          console.log('fetching data for', year);
-          const response = await fetch(`/api/graph/${year}`);
-          const data = await response.json();
+        day.level = this.LEVELS[currentIndex + 1];
+        this.levelCounts[this.currentYear][day.level]++;
+        this.activateCell(day);
+      }
+    },
 
-          if (data.error) {
-            console.error('API error:', data.error);
-          }
-
-          // Data comes as JSON, store directly
-          this.graphDataOriginal[year] = data.graph_data;
-          this.graphDataWorking[year] = JSON.parse(JSON.stringify(data.graph_data))
-          this.graphLevelCounts[year] = this.calculateLevelCount(data.graph_data)
+    decreaseLevel(day) {
+      // don't allow to decrease og contrib days to zero
+      if (day.og && day.level === 'FIRST_QUARTILE') return;
+      
+      const currentIndex = this.LEVELS.indexOf(day.level);
+      if (currentIndex > 0) {
+        this.levelCounts[this.currentYear][day.level]--;
+        day.level = this.LEVELS[currentIndex - 1];
         
-        } catch (error) {
-          console.error(`failed to fetch year ${year} data:`, error);
+        if (day.level !== 'NONE') {
+          this.levelCounts[this.currentYear][day.level]++;
         }
-      },
+        this.activateCell(day);
+      }
+    },
 
-      increaseLevel(day) {
-        const currentIndex = this.LEVELS.indexOf(day.level);
-        if (currentIndex < this.LEVELS.length - 1) {
-          // if not NONE, one less of current level in level count
-          if (day.level !== 'NONE') {
-            this.graphLevelCounts[this.currentYear][day.level]--;
-          }
+    // activate a cell for interaction animation
+    activateCell(day) {
+      day.activated = true;
+      setTimeout(() => { day.activated = false; }, 200);
+    },
 
-          // shift up a level
-          day.level = this.LEVELS[currentIndex + 1];
+    // clear current working year data to original data
+    clearCurrentYear() {
+      this.workingData[this.currentYear] = JSON.parse(JSON.stringify(this.originalData[this.currentYear]));
+      this.levelCounts[this.currentYear] = this.calculateLevelCount(this.workingData[this.currentYear]);
+    },
 
-          // increase current level count
-          this.graphLevelCounts[this.currentYear][day.level]++;
+    // intialize to current year data from api
+    init() {
+      const graphData = {{ graph_data | tojson }};
+      this.originalData[this.endYear] = JSON.parse(JSON.stringify(graphData));
+      this.workingData[this.endYear] = JSON.parse(JSON.stringify(graphData));
+      this.levelCounts[this.endYear] = this.calculateLevelCount(graphData);
+    }
+  });
 
-          // trigger cell animation
-          this.activateCell(day)
-        }
-      },
+  // components
 
-      decreaseLevel(day) {
-        // days that already have commits can't be regenerated to NONE!
-        if (day.og && day.level === 'FIRST_QUARTILE') {
-          return
-        } 
+  // main component
+  Alpine.data('app', () => ({
+    init() {
+      this.$store.graph.init();
+      
+      // utlities if dragging from graph to outside
+      document.addEventListener('selectstart', (e) => {
+        if (this.isDragging) e.preventDefault();
+      });
 
-        const currentIndex = this.LEVELS.indexOf(day.level);
-        if (currentIndex > 0) {
-          // one less of current level
-          this.graphLevelCounts[this.currentYear][day.level]--;
+      document.addEventListener('mouseleave', () => {
+        this.stopDrag();
+      });
+    }
+  }));
 
-          // shift down a level
-          day.level = this.LEVELS[currentIndex - 1];
+  // pop control component
+  Alpine.data('populationControls', () => ({
+    options: {
+      frequency: 50,
+      weekdayBias: 50,
+      intensity: 'medium',
+      pattern: 'random'
+    },
+    
+    intensityLevels: ['low', 'medium', 'high'],
+    patternTypes: ['random', 'streaks', 'consistent', 'bursts'],
+    
+    apply() {
+      // TODO: Implement population logic
+      console.log('Applying population options:', this.options);
+    }
+  }));
 
-          // if current not NONE, increase level count
-          if (day.level !== 'NONE') {
-            this.graphLevelCounts[this.currentYear][day.level]++;
-          }
-        }
-        // trigger cell animation
-        this.activateCell(day)
-      },
+  // graph container component
+  Alpine.data('graphContainer', () => ({
+    colors: {
+      'OUT': '#161b22',        
+      'NONE': '#22272e',       
+      'FIRST_QUARTILE': '#0e4429',
+      'SECOND_QUARTILE': '#006d32', 
+      'THIRD_QUARTILE': '#26a641',
+      'FOURTH_QUARTILE': '#39d353'
+    },
+    contributionLevels: ['FIRST_QUARTILE', 'SECOND_QUARTILE', 'THIRD_QUARTILE', 'FOURTH_QUARTILE'],
+    
+    get canGoPrevious() {
+      return this.$store.graph.currentYear > this.$store.user.startYear && !this.$store.graph.loading;
+    },
+    
+    get canGoNext() {
+      return this.$store.graph.currentYear < this.$store.graph.endYear && !this.$store.graph.loading;
+    },
+    
+    getColor(level) {
+      return this.colors[level];
+    },
+    
+    getLevelPercentage(level) {
+      const counts = this.$store.graph.levelCounts[this.$store.graph.currentYear] || {};
+      const total = Math.max(this.$store.graph.totalContributions, 1);
+      return Math.round(((counts[level] || 0) / total) * 100) + '%';
+    }
+  }));
 
-      activateCell(day) {
-        day.activated = true;
-        setTimeout(() => {
-          day.activated = false;
-        }, 200); 
-      },
-
+  // graph grid component with interaction handling
+  Alpine.data('graphGrid', () => ({
+    weekdays: [0, 1, 2, 3, 4, 5, 6],
+    
+    get loading() {
+      return this.$store.graph.loading;
+    },
+    
+    // drag interaction state
+    interaction: {
+      isDragging: false,
+      dragMode: null,
+      
       startDrag(event, day) {
         this.isDragging = true;
-        this.dragMode = event.button === 0 ? 'increase' : 'decrease'
+        this.dragMode = event.button === 0 ? 'increase' : 'decrease';
 
-        if (!this.isDayLocked(day)) {
+        if (day && !this.isDayLocked(day)) {
           if (this.dragMode === 'increase') {
-            this.increaseLevel(day);
+            Alpine.store('graph').increaseLevel(day);
           } else {
-            this.decreaseLevel(day);
+            Alpine.store('graph').decreaseLevel(day);
           }
         }
-
         event.preventDefault();
       },
 
@@ -594,9 +600,9 @@
         if (!this.isDragging || this.isDayLocked(day)) return;
 
         if (this.dragMode === 'increase') {
-          this.increaseLevel(day);
+          Alpine.store('graph').increaseLevel(day);
         } else {
-          this.decreaseLevel(day);
+          Alpine.store('graph').decreaseLevel(day);
         }
       },
 
@@ -604,113 +610,110 @@
         this.isDragging = false;
         this.dragMode = null;
       },
-
-      // TODO 
-      // might need live tracking of quartile counts
-      validateGraph() {
-        return false;
-      },
-
-      // TODO
-      applyPopulateOptions() {
-        return
-      },
-
-      // return to original contrib state for current year
-      clearGraph() {
-        this.graphDataWorking[this.currentYear] = JSON.parse(JSON.stringify(this.graphDataOriginal[this.currentYear]));
-        this.graphLevelCounts[this.currentYear] = this.calculateLevelCount(this.graphDataWorking[this.currentYear]);
-      },
-
-      // TODO
-      // generate contributions for given year in backend
-      // blocks current year from interactions
-      async generateContributions() {
-        if (!this.validateGraph()) {
-          // TODO better alert
-          alert('Please fix contribution level distribution before generating!');
-          return;
-        }
-        
-        this.generating = true;
-        // backend generation api call
-        this.generating = false;
-      },
-
-      init() {
-        console.log(this.userState)
-        console.log(this.startYear)
-
-        // populate dynamic graph data structures
-        graphData = {{ graph_data | tojson }}
-        this.graphDataOriginal[this.endYear] = JSON.parse(JSON.stringify(graphData));
-        this.graphDataWorking[this.endYear] = JSON.parse(JSON.stringify(graphData));
-        this.graphLevelCounts[this.endYear] = this.calculateLevelCount(graphData);
-
-        // no selection while dragging
-        document.addEventListener('selectstart', (e) => {
-          if (this.isDragging) e.preventDefault();
-        });
-
-        document.addEventListener('mouseleave', () => {
-          this.stopDrag();
-        })
-      },
-
-      // graph display helpers
-
-      get weekCount() {
-        const lengths = [0,1,2,3,4,5,6].map(w => (this.currentData[w] || []).length);
-        return Math.max(0, ...lengths);
-      },
-      findDateForColumn(col) {
-        if (col < 0) return '';
-        for (let w = 0; w < 7; w++) {
-          const d = (this.currentData[w] || [])[col];
-          if (d && d.level !== 'OUT' && d.date) return d.date;
-        }
-        return '';
-      },
-      getMonthLabelForWeek(col) {
-        const date = this.findDateForColumn(col);
-        if (!date) return '';
-        const month = new Date(date + 'T00:00:00').toLocaleString('en-US', { month: 'short' });
-        if (col === 0) return month;
-        const prevDate = this.findDateForColumn(col - 1);
-        const prevMonth = prevDate ? new Date(prevDate + 'T00:00:00').toLocaleString('en-US', { month: 'short' }) : null;
-        return month !== prevMonth ? month : '';
-      },
-      getLoadingMonthLabel(col) {
-        // Generate approximate month labels for loading state
-        // Assuming we start from January and each ~4.3 weeks is a month
-        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const monthIndex = Math.floor(col / 4.3);
-        if (monthIndex >= 12) return '';
-        if (col === 0 || Math.floor((col - 1) / 4.3) !== monthIndex) {
-          return monthNames[monthIndex];
-        }
-        return '';
-      },
-
-      // cell locking helpers
-      get todayStr() { return new Date().toISOString().slice(0, 10); },
-      get isCurrentYear() { return this.currentYear === this.endYear; },
+      
       isDayLocked(day) {
-        // day does not exist within current calendar year (artifact from backend, could remove later)
         if (!day || day.level === 'OUT' || !day.date) return true;
         
-        // day is in the future
-        if (this.isCurrentYear && day.date > this.todayStr) return true;
+        const today = new Date().toISOString().slice(0, 10);
+        const isCurrentYear = Alpine.store('graph').currentYear === Alpine.store('graph').endYear;
+        
+        return isCurrentYear && day.date > today;
+      }
+    },
+    
+    get weekCount() {
+      const currentData = this.$store.graph.currentData;
+      const lengths = this.weekdays.map(w => (currentData[w] || []).length);
+      return Math.max(0, ...lengths);
+    },
+    
+    getCellClasses(day) {
+      return {
+        'opacity-30 cursor-default': day.level === 'OUT',
+        'cursor-pointer hover:opacity-80': day.level !== 'OUT' && !this.interaction.isDayLocked(day),
+        'cursor-not-allowed opacity-40': this.interaction.isDayLocked(day) && day.level !== 'OUT',
+        'scale-110': day.activated,
+      };
+    },
+    
+    getTooltip(day) {
+      const today = new Date().toISOString().slice(0, 10);
+      const isCurrentYear = this.$store.graph.currentYear === this.$store.graph.endYear;
+      
+      if (isCurrentYear && day.date > today) return 'locked: future date';
+      if (day.og && day.level === 'FIRST_QUARTILE') return 'day contains original contributions and cannot be reduced to zero';
+      return '';
+    },
+    
+    getWeekdayLabel(weekday) {
+      const labels = { 1: 'Mon', 3: 'Wed', 5: 'Fri' };
+      return labels[weekday] || '';
+    },
+    
+    // month label helpers
+    findDateForColumn(col) {
+      if (col < 0) return '';
+      const currentData = this.$store.graph.currentData;
+      
+      for (let w = 0; w < 7; w++) {
+        const d = (currentData[w] || [])[col];
+        if (d && d.level !== 'OUT' && d.date) return d.date;
+      }
+      return '';
+    },
+    
+    getMonthLabel(col) {
+      const date = this.findDateForColumn(col);
+      if (!date) return '';
+      
+      const month = new Date(date + 'T00:00:00').toLocaleString('en-US', { month: 'short' });
+      if (col === 0) return month;
+      
+      const prevDate = this.findDateForColumn(col - 1);
+      const prevMonth = prevDate ? new Date(prevDate + 'T00:00:00').toLocaleString('en-US', { month: 'short' }) : null;
+      return month !== prevMonth ? month : '';
+    },
+    
+    getLoadingMonthLabel(col) {
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const monthIndex = Math.floor(col / 4.3);
+      if (monthIndex >= 12) return '';
+      if (col === 0 || Math.floor((col - 1) / 4.3) !== monthIndex) {
+        return monthNames[monthIndex];
+      }
+      return '';
+    }
+  }));
 
-        return false;
-      },
-      getTooltip(day) {
-        if (this.isCurrentYear && day.date > this.todayStr) return 'locked: future date'
-        if (day.og && day.level === 'FIRST_QUARTILE') return 'day contains original contributions and cannot be reduced to zero'
-        return ''
-      },
+  // generation section component
+  Alpine.data('generationSection', () => ({
+    async generate() {
+      if (!this.validateGraph()) {
+        this.$store.ui.validationWarning = 'Please fix contribution level distribution before generating!';
+        return;
+      }
+      
+      this.$store.ui.generating = true;
+      // TODO: Implement actual generation API call
+      
+      // Simulate generation delay
+      setTimeout(() => {
+        this.$store.ui.generating = false;
+      }, 2000);
+    },
+    
+    validateGraph() {
+      // TODO: Implement proper validation
+      return true;
+    }
+  }));
 
-    }))
-  })
+  // info popup component
+  Alpine.data('infoPopup', () => ({
+    close() {
+      this.$store.ui.showInfoPopup = false;
+    }
+  }));
+});
 </script>
 {% endblock %}

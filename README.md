@@ -46,9 +46,9 @@ cannot be put in session cookies (each year json data is about 30kb, cookies are
 - [x] complete validation (future and preaccount days, possible quartile combinations, etc)
 - [x] add sliders and options
 - [x] add info popup
-- [ ] oauth flow
-- [ ] frontend code refactor (clarity, better use of alpine tools)
+- [x] frontend code refactor (clarity, better use of alpine tools)
 - [ ] actual slider etc. generation (respecting quartiles)
+- [ ] oauth flow
 - [ ] generation api
 - [ ] actually add stuff locally (tailwind ...)
 - [ ] live github data through oauth
