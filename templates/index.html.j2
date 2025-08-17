@@ -9,6 +9,9 @@
   <nav class="border-b border-github-border bg-github-surface">
     <div class="container mx-auto px-4 py-4 flex justify-between items-center">
       <h1 class="text-2xl font-bold text-github-text">con-tribute</h1>
+      
+      <div class="flex items-center space-x-4">
+        <!-- login/logout section -->
         <div class="flex items-center space-x-4" x-show="userState.logged_in">
           <span class="text-github-text-secondary" x-text="'welcome, ' + userState.username"></span>
           <a href="/logout" class="text-github-blue hover:underline">logout</a>
@@ -17,19 +20,29 @@
         <a href="/login" class="bg-github-green text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors" x-show="!userState.logged_in">
           login with github
         </a>
+      </div>
     </div>
   </nav>
 
   <!-- main content -->
-  <div class="container mx-auto px-4 py-8">
+  <div class="container mx-auto px-4 py-8 relative">
+
+    <!-- floating info button -->
+    <button 
+      @click="showInfoPopup = true"
+      class="absolute top-15 right-0 w-10 h-10 rounded-full bg-github-surface border border-github-border hover:bg-github-text-secondary text-github-text-secondary hover:text-github-text transition-colors flex items-center justify-center shadow-lg"
+      title="About this site"
+    >
+      <span class="text-lg font-semibold">?</span>
+    </button>
 
     <!-- hero section -->
     <div class="text-center mb-10">
       <h2 class="text-4xl font-light">
         fuck around with your github contribution graph
       </h2>
-      <p class="text-github-text-secondary text-lg py-4">
-        make those recruiters swoon
+      <p class="text-github-text-secondary text-lg pt-2 pb-10">
+        make yourself look 'cracked' for the two people looking at your profile / do silly drawings i dont care
       </p>
     </div>
 
@@ -107,28 +120,28 @@
               @click="populateOptions.pattern='random'"
               :aria-checked="populateOptions.pattern==='random'"
               class="px-3 py-1.5 text-sm rounded-full border border-github-border text-center"
-              :class="populateOptions.pattern==='random' ? 'bg-github-green text-white border-transparent' : 'bg-github-surface text-github-text-secondary hover:bg-[#1b2330]'">
+              :class="populateOptions.pattern==='random' ? 'bg-github-surface text-white' : 'bg-github-surface text-github-text-secondary hover:bg-[#1b2330]'">
               random
             </button>
             <button type="button"
               @click="populateOptions.pattern='streaks'"
               :aria-checked="populateOptions.pattern==='streaks'"
               class="px-3 py-1.5 text-sm rounded-full border border-github-border text-center"
-              :class="populateOptions.pattern==='streaks' ? 'bg-github-green text-white border-transparent' : 'bg-github-surface text-github-text-secondary hover:bg-[#1b2330]'">
+              :class="populateOptions.pattern==='streaks' ? 'bg-github-surface text-white' : 'bg-github-surface text-github-text-secondary hover:bg-[#1b2330]'">
               streaks
             </button>
             <button type="button"
               @click="populateOptions.pattern='consistent'"
               :aria-checked="populateOptions.pattern==='consistent'"
               class="px-3 py-1.5 text-sm rounded-full border border-github-border text-center"
-              :class="populateOptions.pattern==='consistent' ? 'bg-github-green text-white border-transparent' : 'bg-github-surface text-github-text-secondary hover:bg-[#1b2330]'">
+              :class="populateOptions.pattern==='consistent' ? 'bg-github-surface text-white' : 'bg-github-surface text-github-text-secondary hover:bg-[#1b2330]'">
               consistent
             </button>
             <button type="button"
               @click="populateOptions.pattern='bursts'"
               :aria-checked="populateOptions.pattern==='bursts'"
               class="px-3 py-1.5 text-sm rounded-full border border-github-border text-center"
-              :class="populateOptions.pattern==='bursts' ? 'bg-github-green text-white border-transparent' : 'bg-github-surface text-github-text-secondary hover:bg-[#1b2330]'">
+              :class="populateOptions.pattern==='bursts' ? 'bg-github-surface text-white' : 'bg-github-surface text-github-text-secondary hover:bg-[#1b2330]'">
               bursts
             </button>
           </div>
@@ -315,6 +328,78 @@
       </div>
     </div>
   </div>
+
+  <!-- info popup modal -->
+  <div 
+    x-show="showInfoPopup" 
+    x-transition:enter="transition ease-out duration-100"
+    x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100"
+    x-transition:leave="transition ease-in duration-100"
+    x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0"
+    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    @click.self="showInfoPopup = false"
+  >
+    <div 
+      class="bg-github-surface border border-github-border rounded-lg p-8 max-w-2xl mx-4 text-github-text"
+      x-transition:enter="transition ease-out duration-100"
+      x-transition:enter-start="opacity-0 scale-95"
+      x-transition:enter-end="opacity-100 scale-100"
+      x-transition:leave="transition ease-in duration-100"
+      x-transition:leave-start="opacity-100 scale-100"
+      x-transition:leave-end="opacity-0 scale-95"
+    >
+      <div class="flex justify-between items-center">
+        <h4 class="text-lg text-github-text font-medium">heads up</h4>
+        <button 
+          @click="showInfoPopup = false"
+          class="text-github-text-secondary hover:text-github-text transition-colors"
+        >
+          <span class="text-2xl">&times;</span>
+        </button>
+      </div>
+      
+      <div class="space-y-4 text-base text-github-text-secondary">
+        <p class="text-sm">
+          changes on this site WILL actively reflect on your github page. I DO NOT personally recommend using this to fool employers.
+          this site was made on a whim and I don't intend to be put on legal blast because of YOU and your INABILITY to find a JOB.
+          I made this cause I had no contributions in all of 2023 and wanted to put a silly drawing there.
+        </p>
+        
+        <div>
+          <h4 class="text-github-text font-medium text-lg">how to use</h4>
+          <ul class="list-disc list-inside text-sm">
+            <li>left-click to bring contribution level up</li>
+            <li>right-click to bring contribution level down</li>
+            <li>auto-populate the graph w/ the sliders and stuff </li>
+            <li>generate the changes if the graph is valid (more on this below). should reflect on github in X minutes</li>
+
+          </ul>
+        </div>
+        
+        <div>
+          <h4 class="text-github-text font-medium text-lg">how it works</h4>
+          <ul class="text-sm list-disc list-inside">
+            <li>you play with the contribution level (color) directly</li>
+            <li>contribution counts are computed based on existing commit counts</li>
+            <li>github contribution levels are based on contribution count quartiles; some color combinations may therefore be invalid</li>
+            <li>computed dummy commits get pushed to a dummy private repo</li>
+            <li>just delete the dummy repo to remove the changes if you're unhappy after generation!</li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 class="text-github-text font-medium text-lg">legal disclaimer</h4>
+          <p class="text-xs">
+            This tool is intended solely for personal use and experimentation. It allows users to visualize and simulate GitHub contribution graphs by generating dummy commits in private repositories.
+            These simulated contributions are not actual code contributions and do not reflect real-world activity.
+            Using this tool to misrepresent your activity to others, including potential employers, is strictly prohibited and may violate GitHub's Terms of Service.
+            By using this tool, you agree to use it responsibly and acknowledge that any misuse is at your own risk. :)
+          </p>
+        </div>
+    </div>
+  </div>
 </div>  
 
 <script>
@@ -356,6 +441,9 @@
       // graph drawing
       isDragging: false,
       dragMode: null,     // increase / decrease
+
+      // popup info
+      showInfoPopup: false,
 
       // graph 
       COLORS: {

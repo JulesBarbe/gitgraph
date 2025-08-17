@@ -43,11 +43,14 @@ cannot be put in session cookies (each year json data is about 30kb, cookies are
 - [x] year navigation between different graphs
 - [x] optimizations (dynamic level counting and validation, fresh graph or diff based for clearing)
 - [x] better loading animation -> bouncing cells?
-- [ ] add sliders and options
-- [ ] complete validation (future and preaccount days, possible quartile combinations, etc)
+- [x] complete validation (future and preaccount days, possible quartile combinations, etc)
+- [x] add sliders and options
+- [x] add info popup
+- [ ] oauth flow
+- [ ] frontend code refactor (clarity, better use of alpine tools)
+- [ ] actual slider etc. generation (respecting quartiles)
 - [ ] generation api
 - [ ] actually add stuff locally (tailwind ...)
-- [ ] oauth flow
 - [ ] live github data through oauth
 - [ ] graph gen
 - [ ] redis instead of python dicts lol
