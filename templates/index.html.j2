@@ -230,7 +230,8 @@
                            :class="getCellClasses(day)"
                            :style="`background-color: ${getColor(day.level)}`"
                            @mousedown="interaction.startDrag($event, day)"
-                           @mouseenter="interaction.onDragOver(day)"
+                           @mouseenter="interaction.onCellHover(day); interaction.onDragOver(day)"
+                           @mouseleave="interaction.onCellLeave(day)"
                            :title="getTooltip(day)">
                       </div>
                     </template>
@@ -618,6 +619,23 @@ document.addEventListener('alpine:init', () => {
         const isCurrentYear = Alpine.store('graph').currentYear === Alpine.store('graph').endYear;
         
         return isCurrentYear && day.date > today;
+      },
+
+      onCellHover(day) {
+        if (this.isDayLocked(day) || day.level === 'OUT') return;
+        day.hovered = true;
+      },
+
+      onCellLeave(day) {
+        if (this.isDayLocked(day) || day.level === 'OUT') return;
+        // Clear any existing timeout
+        if (day.hoverTimeout) {
+          clearTimeout(day.hoverTimeout);
+        }
+        // Set a timeout to remove hover effect after 300ms
+        day.hoverTimeout = setTimeout(() => {
+          day.hovered = false;
+        }, 100);
       }
     },
     
@@ -633,6 +651,7 @@ document.addEventListener('alpine:init', () => {
         'cursor-pointer hover:opacity-80': day.level !== 'OUT' && !this.interaction.isDayLocked(day),
         'cursor-not-allowed opacity-40': this.interaction.isDayLocked(day) && day.level !== 'OUT',
         'scale-110': day.activated,
+        'scale-90 opacity-60': day.hovered && !day.activated,
       };
     },
     
